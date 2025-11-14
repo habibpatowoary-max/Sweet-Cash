@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Sweet Cash App — Telegram Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* ------- Theme / Layout ------- */
+  :root{
+    --bg1:#031024; --bg2:#082033;
+    --bg3:#0a2842;
+    --glass: rgba(255,255,255,0.08);
+    --card: rgba(255,255,255,0.05);
+    --accent1: #00d4ff; --accent2: #7b61ff;
+    --accent3: #ff6b6b; --accent4: #00e676;
+    --success: #00e676; --danger:#ff6b6b; --warning:#ffa726;
+    --muted: rgba(255,255,255,0.75);
+    --radius:20px;
+    --pad:16px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;font-family:Inter,'Noto Sans Bengali',system-ui,-apple-system,Segoe UI,Roboto; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%;margin:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#eaf6ff}
+  .app{max-width:420px;margin:10px auto;padding:12px;min-height:calc(100vh - 20px)}
+  .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.05);backdrop-filter: blur(10px);}
+  .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#021018;font-size:24px;box-shadow:0 4px 15px rgba(0,212,255,0.3)}
+  h1{font-size:20px;margin:0;background:linear-gradient(90deg,var(--accent1),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .muted{color:var(--muted);font-size:13px}
+  .balance{font-size:32px;font-weight:800;background:linear-gradient(90deg,var(--accent1),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 2px 10px rgba(0,212,255,0.3)}
+  .small-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .stat{background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));padding:12px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.03)}
+  .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;padding:12px 16px;border-radius:12px;border:0;cursor:pointer;font-weight:700;transition:all 0.2s ease;font-size:14px}
+  .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021018;box-shadow:0 4px 15px rgba(0,212,255,0.3)}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);color:inherit}
+  .btn-success{background:var(--success);color:#021018;box-shadow:0 4px 15px rgba(0,230,118,0.3)}
+  .btn-danger{background:var(--danger);color:#fff;box-shadow:0 4px 15px rgba(255,107,107,0.3)}
+  .btn-warning{background:var(--warning);color:#210;box-shadow:0 4px 15px rgba(255,167,38,0.3)}
+  input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.05);color:inherit;font-size:14px}
+  .ref-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .ref-row input{flex:1}
+  .ad-slot{margin-top:16px;border-radius:14px;padding:16px;background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent);text-align:center;border:1px solid rgba(255,255,255,0.05)}
+  .tasks-list{display:grid;gap:10px;margin-top:16px}
+  .task{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03)}
+  .mini{font-size:12px;color:var(--muted)}
+  .touch{transition:transform .12s ease, box-shadow .12s; user-select:none}
+  .touch:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+  .touch:active{transform:translateY(1px) scale(.995);box-shadow:0 2px 10px rgba(0,0,0,0.3)}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);top:14px;padding:12px 18px;border-radius:12px;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021018;font-weight:700;z-index:99999;opacity:0;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+  .toast.show{opacity:1;pointer-events:auto;animation:fadeIn .36s}
+  @keyframes fadeIn{0%{transform:translate(-50%,-6px) scale(.98);opacity:0}100%{transform:translateX(-50%) scale(1);opacity:1}}
+  /* bottom nav */
+  .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;background:rgba(3,16,36,0.8);padding:10px;border-radius:20px;display:flex;gap:8px;z-index:9999;backdrop-filter: blur(10px);border:1px solid rgba(255,255,255,0.05);box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+  .nav-btn{min-width:70px;padding:12px 8px;border-radius:16px;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;transition:all 0.2s ease}
+  .nav-btn.active{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021018;font-weight:800;box-shadow:0 4px 15px rgba(0,212,255,0.3)}
+  .popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.98);z-index:10000;width:92%;max-width:420px;border-radius:20px;opacity:0;pointer-events:none;background:var(--bg3);box-shadow:0 20px 60px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.05)}
+  .popup.show{opacity:1;pointer-events:auto;animation:pop .36s cubic-bezier(.2,.9,.2,1)}
+  @keyframes pop{0%{transform:translate(-50%,-50%) scale(.96);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+  .help-link{display:flex;align-items:center;gap:8px}
+  /* Games Section */
+  .games-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .game-card{background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));border-radius:16px;padding:16px;text-align:center;border:1px solid rgba(255,255,255,0.05);transition:all 0.3s ease}
+  .game-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,0.4)}
+  .game-icon{font-size:32px;margin-bottom:8px}
+  .game-title{font-weight:700;font-size:14px;margin-bottom:4px}
+  .game-desc{font-size:11px;color:var(--muted)}
+  /* Game specific styles */
+  .quiz-container{padding:16px;text-align:center}
+  .quiz-question{font-size:18px;margin-bottom:16px;font-weight:600}
+  .quiz-options{display:grid;gap:10px;margin-bottom:16px}
+  .quiz-option{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px;cursor:pointer;transition:all 0.2s ease;border:1px solid rgba(255,255,255,0.05)}
+  .quiz-option:hover{background:rgba(255,255,255,0.08)}
+  .quiz-option.correct{background:var(--success);color:#021018}
+  .quiz-option.wrong{background:var(--danger);color:#fff}
+  .math-container{padding:16px;text-align:center}
+  .math-problem{font-size:24px;margin-bottom:16px;font-weight:700}
+  .math-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .math-option{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px;cursor:pointer;transition:all 0.2s ease;border:1px solid rgba(255,255,255,0.05);font-size:18px;font-weight:600}
+  .math-option:hover{background:rgba(255,255,255,0.08)}
+  .math-option.correct{background:var(--success);color:#021018}
+  .math-option.wrong{background:var(--danger);color:#fff}
+  .spin-container{padding:16px;text-align:center}
+  .spin-wheel{width:200px;height:200px;border-radius:50%;margin:0 auto 20px;position:relative;background:conic-gradient(#00d4ff, #7b61ff, #ff6b6b, #00e676, #ffa726, #00d4ff);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+  .spin-pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:20px;height:30px;background:var(--accent1);clip-path:polygon(50% 0%, 0% 100%, 100% 100%);z-index:10}
+  .spin-btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021018;border:none;border-radius:50%;width:60px;height:60px;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 4px 15px rgba(0,212,255,0.4);transition:all 0.3s ease}
+  .spin-btn:hover{transform:scale(1.05)}
+  .spin-btn:active{transform:scale(0.95)}
+  .scratch-container{padding:16px;text-align:center}
+  .scratch-card{width:200px;height:120px;margin:0 auto 16px;position:relative;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--accent1),var(--accent2));box-shadow:0 8px 25px rgba(0,0,0,0.4)}
+  .scratch-prize{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#021018;z-index:1}
+  .scratch-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;cursor:pointer}
+  .scratch-btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021018;border:none;border-radius:12px;padding:12px 24px;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(0,212,255,0.4);transition:all 0.3s ease}
+  .scratch-btn:hover{transform:translateY(-2px)}
+  .scratch-btn:active{transform:translateY(1px)}
+  /* responsive adjustments */
+  @media (max-width:460px){
+    .app{padding:8px;margin:6px auto}
+    .ref-row input{font-size:13px}
+    .logo{width:50px;height:50px;font-size:20px}
+    .games-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app card" id="appRoot">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">SC</div>
+      <div>
+        <h1>Sweet Cash App</h1>
+        <div class="mini">Earn by Ads, Games, Referrals & Tasks</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="mini">Admin ID: <strong id="adminIdDisplay">6728725622</strong></div>
+      <div id="tgUserInfo" class="mini">Telegram: —</div>
+    </div>
+  </div>
+
+  <!-- HOME view -->
+  <div id="viewHome">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="mini">মোট ব্যালেন্স</div>
+          <div class="balance" id="ui_balance">৳ 0.00</div>
+          <div class="mini" style="margin-top:6px">ন্যূনতম: বিকাশ ৳২৫০ · নগদ ৳৪০০ · ব্যাংক ৳৮৫০ · (৫ রেফার প্রয়োজন)</div>
+        </div>
+        <div style="width:170px">
+          <div class="ref-row">
+            <input id="refLink" readonly />
+            <button class="btn btn-ghost touch" onclick="copyRef()">Copy</button>
+          </div>
+          <div style="height:8px"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary touch" onclick="playAd()">📺 Watch Ad</button>
+            <button class="btn btn-success touch" onclick="openWithdraw()">💸 Withdraw</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="small-grid" style="margin-top:12px">
+        <div class="stat"><div class="mini">এড দেখেছেন</div><div style="font-weight:800;font-size:18px" id="ui_ads">0</div></div>
+        <div class="stat"><div class="mini">রেফার</div><div style="font-weight:800;font-size:18px" id="ui_refs">0</div></div>
+        <div class="stat"><div class="mini">মোট আয়</div><div style="font-weight:800;font-size:18px" id="ui_earned">৳0.00</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div><strong>Games</strong><div class="mini">Play games & earn rewards</div></div>
+        <div class="mini" id="gamesCountChip">4 games</div>
+      </div>
+      <div class="games-grid">
+        <div class="game-card touch" onclick="openGame('quiz')">
+          <div class="game-icon">❓</div>
+          <div class="game-title">Quiz Game</div>
+          <div class="game-desc">Answer questions & earn</div>
+        </div>
+        <div class="game-card touch" onclick="openGame('math')">
+          <div class="game-icon">➕</div>
+          <div class="game-title">Math Challenge</div>
+          <div class="game-desc">Solve math problems</div>
+        </div>
+        <div class="game-card touch" onclick="openGame('spin')">
+          <div class="game-icon">🎡</div>
+          <div class="game-title">Spin Wheel</div>
+          <div class="game-desc">Spin & win prizes</div>
+        </div>
+        <div class="game-card touch" onclick="openGame('scratch')">
+          <div class="game-icon">🎫</div>
+          <div class="game-title">Scratch Card</div>
+          <div class="game-desc">Scratch & reveal prizes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div><strong>Ad Slot (Demo)</strong><div class="mini">Adsterra + Monetag rotation (demo)</div></div>
+        <div class="mini" id="adModeChip">Mode: Demo-Adsterra</div>
+      </div>
+      <div class="ad-slot" id="adSlot">
+        <div id="demoAd" style="padding:12px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03),transparent)">
+          <div class="mini">Demo Ad Placeholder (Adsterra)</div>
+          <div style="height:10px"></div>
+          <button class="btn btn-ghost touch" onclick="simulateAdView()">Simulate View</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div><strong>Support</strong><div class="mini">Need help? Contact support</div></div>
+        <div class="mini">Live</div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-direction:column">
+        <div class="help-link"><span class="mini">Telegram:</span><a class="mini" href="https://t.me/sweetcashapp_bot" target="_blank"> @sweetcashapp_bot</a></div>
+        <div class="help-link"><span class="mini">Email:</span><a class="mini" href="mailto:support@sweetcashapp.example">support@sweetcashapp.example</a></div>
+        <div style="height:8px"></div>
+        <button class="btn btn-ghost touch" onclick="openSupport()">Open Support</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS view -->
+  <div id="viewTasks" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div><strong>Social Tasks</strong><div class="mini">Complete tasks & earn</div></div>
+        <div class="chip mini" id="taskCountChip">0 tasks</div>
+      </div>
+      <div class="tasks-list" id="tasksList"></div>
+      <div class="mini" style="margin-top:8px">Click a task — link opens in new tab. Admin will verify & approve reward.</div>
+    </div>
+  </div>
+
+  <!-- GAMES view -->
+  <div id="viewGames" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div><strong>Games</strong><div class="mini">Play games & earn rewards</div></div>
+        <div class="mini" id="gamesCountChip2">4 games</div>
+      </div>
+      <div class="games-grid">
+        <div class="game-card touch" onclick="openGame('quiz')">
+          <div class="game-icon">❓</div>
+          <div class="game-title">Quiz Game</div>
+          <div class="game-desc">Answer questions & earn</div>
+        </div>
+        <div class="game-card touch" onclick="openGame('math')">
+          <div class="game-icon">➕</div>
+          <div class="game-title">Math Challenge</div>
+          <div class="game-desc">Solve math problems</div>
+        </div>
+        <div class="game-card touch" onclick="openGame('spin')">
+          <div class="game-icon">🎡</div>
+          <div class="game-title">Spin Wheel</div>
+          <div class="game-desc">Spin & win prizes</div>
+        </div>
+        <div class="game-card touch" onclick="openGame('scratch')">
+          <div class="game-icon">🎫</div>
+          <div class="game-title">Scratch Card</div>
+          <div class="game-desc">Scratch & reveal prizes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WITHDRAW view -->
+  <div id="viewWithdraw" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div><strong>Withdraw</strong><div class="mini">Withdraw rules & requests</div></div>
+        <div class="mini">Rules</div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="mini">You must have at least 5 referrals and meet method minimums.</div>
+        <div style="height:10px"></div>
+        <button class="btn btn-success touch" onclick="openWithdraw()">Request Withdraw</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div><strong>Your Requests</strong><div class="mini">Local withdraw & task submissions</div></div>
+        <div class="mini" id="yourReqCount">0 requests</div>
+      </div>
+      <div class="history-list" id="userHistory"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE view -->
+  <div id="viewProfile" style="display:none">
+    <div class="card">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="logo" style="width:54px;height:54px;border-radius:10px">SC</div>
+        <div>
+          <div style="font-weight:800" id="profileName">Guest</div>
+          <div class="mini" id="profileId">ID: —</div>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+      <div><strong>Account</strong></div>
+      <div style="margin-top:8px">
+        <div class="mini">Admin: <span id="adminIdText">6728725622</span></div>
+        <div style="height:8px"></div>
+        <button class="btn btn-ghost touch" onclick="exportData()">Export Data</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-danger touch" onclick="clearAllConfirm()">Clear All Data</button>
+      </div>
+    </div>
+
+    <div id="adminPanel" class="card admin-only" style="margin-top:16px;display:none">
+      <div class="card-header">
+        <div><strong>Admin Dashboard</strong><div class="mini">Manage users, tasks & withdraws</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost touch" onclick="refreshAll()">Refresh</button>
+          <button class="btn btn-danger touch" onclick="adminLogout()">Logout</button>
+        </div>
+      </div>
+      <!-- admin widgets -->
+      <div style="margin-top:12px">
+        <div style="display:flex;gap:8px">
+          <input id="adminSearch" placeholder="Search user id" oninput="renderUsers()" />
+          <button class="btn btn-primary touch" onclick="openCreateUser()">New User</button>
+        </div>
+        <table class="users-table" style="width:100%;margin-top:8px"><thead><tr><th>User ID</th><th>Balance</th><th>Refs</th><th>Ads</th><th>Action</th></tr></thead><tbody id="usersTbody"></tbody></table>
+      </div>
+
+      <div style="margin-top:12px">
+        <strong>Withdraw & Task Requests</strong>
+        <div class="history-list" id="adminWithdraws"></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <strong>Task Management</strong>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="taskTitle" placeholder="Title"/>
+          <input id="taskReward" placeholder="Reward ৳"/>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="taskLink" placeholder="Link"/>
+          <input id="taskTax" placeholder="Tax %"/>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <select id="taskType"><option value="follow">Follow</option><option value="subscribe">Subscribe</option><option value="comment">Comment</option><option value="visit">Visit</option></select>
+          <button class="btn btn-success touch" onclick="addTask()">Add Task</button>
+          <button class="btn btn-ghost touch" onclick="loadDefaultTasks()">Load Defaults</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Welcome popup -->
+<div id="welcomePopup" class="popup">
+  <div class="card" style="padding:16px;">
+    <h3>স্বাগতম Sweet Cash App! 🎉</h3>
+    <div class="mini" style="margin-top:8px">
+      Telegram earning rules:  
+      <ul style="margin:6px 0 0 18px">
+        <li>প্রতি বিজ্ঞাপন দেখলে উপার্জন (demo ৳2)</li>
+        <li>প্রতি ঘন্টায় সর্বোচ্চ ২০ এড</li>
+        <li>গেম খেলে অতিরিক্ত আয় করুন</li>
+      </ul>
+      Withdraw rules:
+      <ul style="margin:6px 0 0 18px">
+        <li>বিকাশ: ন্যূনতম ৳২৫০ (চার্জ ৳১৫)</li>
+        <li>নগদ: ন্যূনতম ৳৪০০ (চার্জ ৳২০)</li>
+        <li>ব্যাংক: ন্যূনতম ৳৮৫০ (চার্জ ৳৩০)</li>
+        <li>উত্তোলনের আগে কমপক্ষে ৫ রেফার আবশ্যক</li>
+      </ul>
+    </div>
+    <div style="height:10px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary touch" onclick="closeWelcome()">Start Earning</button>
+      <button class="btn btn-ghost touch" onclick="closeWelcome()">Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- Game Popups -->
+<div id="quizGamePopup" class="popup">
+  <div class="card" style="padding:16px;">
+    <div class="card-header">
+      <h3>Quiz Game</h3>
+      <button class="btn btn-ghost touch" onclick="closeGame()">✕</button>
+    </div>
+    <div class="quiz-container">
+      <div class="quiz-question" id="quizQuestion">Loading question...</div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="mini" id="quizResult"></div>
+      <div style="height:10px"></div>
+      <button class="btn btn-primary touch" id="nextQuizBtn" onclick="nextQuizQuestion()" style="display:none">Next Question</button>
+    </div>
+  </div>
+</div>
+
+<div id="mathGamePopup" class="popup">
+  <div class="card" style="padding:16px;">
+    <div class="card-header">
+      <h3>Math Challenge</h3>
+      <button class="btn btn-ghost touch" onclick="closeGame()">✕</button>
+    </div>
+    <div class="math-container">
+      <div class="math-problem" id="mathProblem">Loading problem...</div>
+      <div class="math-options" id="mathOptions"></div>
+      <div class="mini" id="mathResult"></div>
+      <div style="height:10px"></div>
+      <button class="btn btn-primary touch" id="nextMathBtn" onclick="nextMathProblem()" style="display:none">Next Problem</button>
+    </div>
+  </div>
+</div>
+
+<div id="spinGamePopup" class="popup">
+  <div class="card" style="padding:16px;">
+    <div class="card-header">
+      <h3>Spin Wheel</h3>
+      <button class="btn btn-ghost touch" onclick="closeGame()">✕</button>
+    </div>
+    <div class="spin-container">
+      <div class="spin-wheel" id="spinWheel">
+        <div class="spin-pointer"></div>
+        <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">SPIN TO WIN</div>
+      </div>
+      <div class="mini" id="spinResult"></div>
+      <div style="height:10px"></div>
+      <button class="btn btn-primary touch spin-btn" id="spinBtn" onclick="spinWheel()">SPIN</button>
+    </div>
+  </div>
+</div>
+
+<div id="scratchGamePopup" class="popup">
+  <div class="card" style="padding:16px;">
+    <div class="card-header">
+      <h3>Scratch Card</h3>
+      <button class="btn btn-ghost touch" onclick="closeGame()">✕</button>
+    </div>
+    <div class="scratch-container">
+      <div class="scratch-card">
+        <div class="scratch-prize" id="scratchPrize">৳ 5.00</div>
+        <canvas class="scratch-canvas" id="scratchCanvas" width="200" height="120"></canvas>
+      </div>
+      <div class="mini" id="scratchResult"></div>
+      <div style="height:10px"></div>
+      <button class="btn btn-primary touch scratch-btn" id="newScratchBtn" onclick="newScratchCard()">New Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav" id="bottomNav">
+  <button class="nav-btn active touch" data-view="home" onclick="switchView('home', this)"><div>🏠</div><div style="font-size:11px">Home</div></button>
+  <button class="nav-btn touch" data-view="games" onclick="switchView('games', this)"><div>🎮</div><div style="font-size:11px">Games</div></button>
+  <button class="nav-btn touch" data-view="tasks" onclick="switchView('tasks', this)"><div>🧾</div><div style="font-size:11px">Tasks</div></button>
+  <button class="nav-btn touch" data-view="withdraw" onclick="switchView('withdraw', this)"><div>💸</div><div style="font-size:11px">Withdraw</div></button>
+  <button class="nav-btn touch" data-view="profile" onclick="switchView('profile', this)"><div>👤</div><div style="font-size:11px">Profile</div></button>
+</div>
+
+<script>
+/* =========================
+   CONFIG
+   ========================= */
+const ADMIN_TG_ID = "6728725622";
+const BOT_BASE_LINK = "https://t.me/sweetcashapp_bot";
+const CONFIG = {
+  adEarning: 2.00,
+  refBonus: 5.00,
+  minRefsToWithdraw: 5,
+  cooldownMs: 30000,
+  adHourlyLimit: 20,
+  socialDefaultReward: 5.00,
+  withdrawMethods: [
+    { key:'bkash', label:'বিকাশ', min:250, charge:15 },
+    { key:'nagad', label:'নগদ', min:400, charge:20 },
+    { key:'bank', label:'ব্যাংক', min:850, charge:30 }
+  ],
+  adRotationInterval: 15000,
+  gameReward: {
+    quiz: 1.00,
+    math: 1.50,
+    spin: [0.50, 1.00, 2.00, 5.00, 10.00],
+    scratch: [0.50, 1.00, 2.00, 5.00]
+  }
+};
+
+/* =========================
+   KEYS
+   ========================= */
+const KEY_USERS = 'sc_users_idx_v1';
+const KEY_WITHDRAWS = 'sc_withdraws_v1';
+const KEY_TASKS = 'sc_tasks_v1';
+const KEY_GUEST = 'sc_guest_v1';
+const KEY_REF_FLAG = 'sc_ref_flag_';
+const KEY_AD_VIEWS = 'sc_ad_views_v1';
+
+/* =========================
+   Telegram WebApp
+   ========================= */
+let tg=null, tgUser=null;
+try {
+  tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+  if(tg.initDataUnsafe) tgUser = tg.initDataUnsafe.user;
+  if(tgUser){
+    document.getElementById('tgUserInfo').innerText = `Telegram: ${tgUser.first_name || ''} ${tgUser.username ? '('+tgUser.username+')' : ''} — id: ${tgUser.id}`;
+  }
+} catch(e){ console.warn('Telegram not available'); }
+
+/* =========================
+   Helpers
+   ========================= */
+function nowStr(){ return new Date().toLocaleString('bn-BD'); }
+function uid(){ return 'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); }
+function toast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function vibrate(ms=12){ if(navigator.vibrate) navigator.vibrate(ms); }
+
+/* =========================
+   Storage utils
+   ========================= */
+function getIndex(){ try{ const s=localStorage.getItem(KEY_USERS); return s?JSON.parse(s):[]; }catch(e){return []} }
+function saveIndex(arr){ localStorage.setItem(KEY_USERS, JSON.stringify(arr)); }
+function saveUser(id, data){ localStorage.setItem(id, JSON.stringify(data)); let idx=getIndex(); if(!idx.includes(id)){ idx.push(id); saveIndex(idx); } }
+function getUser(id){ const s=localStorage.getItem(id); return s?JSON.parse(s):null; }
+function deleteUser(id){ localStorage.removeItem(id); let idx=getIndex().filter(x=>x!==id); saveIndex(idx); }
+function getWithdraws(){ const s=localStorage.getItem(KEY_WITHDRAWS); return s?JSON.parse(s):[]; }
+function saveWithdraws(a){ localStorage.setItem(KEY_WITHDRAWS, JSON.stringify(a)); }
+function addWithdraw(entry){ const a=getWithdraws(); a.unshift(entry); saveWithdraws(a); }
+function getTasks(){ const s=localStorage.getItem(KEY_TASKS); return s?JSON.parse(s):[]; }
+function saveTasks(a){ localStorage.setItem(KEY_TASKS, JSON.stringify(a)); }
+
+/* =========================
+   Ad hourly tracking
+   ========================= */
+function _getAdStore(){ try{ const s=localStorage.getItem(KEY_AD_VIEWS); return s?JSON.parse(s):{} }catch(e){return {}} }
+function _saveAdStore(o){ localStorage.setItem(KEY_AD_VIEWS, JSON.stringify(o)); }
+function canViewAd(uid){ const st=_getAdStore(); const arr=st[uid]||[]; const oneHour = Date.now() - 3600*1000; const recent = arr.filter(t=>t>oneHour); return recent.length < CONFIG.adHourlyLimit; }
+function recordAdView(uid){ const st=_getAdStore(); const arr=st[uid]||[]; arr.push(Date.now()); st[uid]=arr.slice(-200); _saveAdStore(st); }
+function adViewsLeft(uid){ const st=_getAdStore(); const arr=st[uid]||[]; const oneHour=Date.now()-3600*1000; const recent=arr.filter(t=>t>oneHour); return Math.max(0, CONFIG.adHourlyLimit - recent.length); }
+
+/* =========================
+   Current visitor
+   ========================= */
+let CURRENT_USER = (tgUser && tgUser.id) ? `tg_${tgUser.id}` : null;
+function ensureCurrentUser(){
+  if(!CURRENT_USER){
+    let guest = localStorage.getItem(KEY_GUEST);
+    if(!guest){ guest = uid(); localStorage.setItem(KEY_GUEST, guest); }
+    CURRENT_USER = guest;
+  }
+  let u = getUser(CURRENT_USER);
+  if(!u){ u = { id:CURRENT_USER, balance:0, adsWatched:0, refs:0, totalEarned:0, createdAt:nowStr(), lastAd:0 }; saveUser(CURRENT_USER, u); }
+  // referral param
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const start = params.get('start');
+    if(start && start.startsWith('ref_')){
+      const refId = start.replace('ref_','');
+      if(refId && refId !== CURRENT_USER){
+        const flag = KEY_REF_FLAG + refId + '_' + CURRENT_USER;
+        if(!localStorage.getItem(flag)){
+          let refUser = getUser(refId) || { id:refId, balance:0, refs:0, totalEarned:0 };
+          refUser.refs = (refUser.refs||0) + 1;
+          refUser.balance = (refUser.balance||0) + CONFIG.refBonus;
+          refUser.totalEarned = (refUser.totalEarned||0) + CONFIG.refBonus;
+          saveUser(refId, refUser);
+          localStorage.setItem(flag, '1');
+          toast('Referral registered — referrer credited ৳' + CONFIG.refBonus);
+        }
+      }
+    }
+  }catch(e){}
+}
+
+/* =========================
+   UI Rendering
+   ========================= */
+function updateUI(){
+  const u = getUser(CURRENT_USER);
+  document.getElementById('ui_balance').innerText = `৳ ${parseFloat((u.balance||0)).toFixed(2)}`;
+  document.getElementById('ui_ads').innerText = u.adsWatched||0;
+  document.getElementById('ui_refs').innerText = u.refs||0;
+  document.getElementById('ui_earned').innerText = `৳ ${parseFloat((u.totalEarned||0)).toFixed(2)}`;
+  document.getElementById('refLink').value = generateRefLink(CURRENT_USER);
+  renderTasks();
+  renderUserHistory();
+  renderUsers();
+  renderAdminWithdraws();
+  document.getElementById('taskCountChip').innerText = getTasks().length + ' tasks';
+  document.getElementById('yourReqCount').innerText = getWithdraws().filter(x=>x.userId===CURRENT_USER).length;
+  if(isAdmin()) document.querySelectorAll('.admin-only').forEach(el=>el.style.display='block'); else document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+  // profile info
+  document.getElementById('profileName').innerText = (tgUser && tgUser.first_name) ? (tgUser.first_name) : 'Guest';
+  document.getElementById('profileId').innerText = 'ID: ' + CURRENT_USER;
+}
+
+/* referral link */
+function generateRefLink(id){ return `${BOT_BASE_LINK}?start=ref_${id}`; }
+function copyRef(){ const el=document.getElementById('refLink'); el.select(); el.setSelectionRange(0,99999); document.execCommand('copy'); toast('Referral copied'); }
+
+/* =========================
+   Tasks
+   ========================= */
+function loadDefaultTasks(){
+  const defs = [
+    { id:'t_fb', title:'Follow on Facebook', link:'https://facebook.com', type:'follow', reward:CONFIG.socialDefaultReward, taxPct:10 },
+    { id:'t_tw', title:'Follow on Twitter', link:'https://twitter.com', type:'follow', reward:CONFIG.socialDefaultReward, taxPct:8 },
+    { id:'t_yt', title:'Subscribe on YouTube', link:'https://youtube.com', type:'subscribe', reward:CONFIG.socialDefaultReward, taxPct:12 },
+    { id:'t_tele', title:'Join Telegram Channel', link:'https://t.me', type:'join', reward:CONFIG.socialDefaultReward, taxPct:5 },
+    { id:'t_ig', title:'Follow on Instagram', link:'https://instagram.com', type:'follow', reward:CONFIG.socialDefaultReward, taxPct:7 }
+  ];
+  saveTasks(defs); toast('Default tasks added'); renderTasks();
+}
+function renderTasks(){
+  const cont = document.getElementById('tasksList'); cont.innerHTML = '';
+  const tasks = getTasks();
+  tasks.forEach(t=>{
+    const div = document.createElement('div'); div.className='task touch';
+    const left = document.createElement('div'); left.className='left'; left.innerHTML = `<h4 style="margin:0">${t.title}</h4><p class="mini">${t.type} • ৳${parseFloat(t.reward).toFixed(2)} • Tax: ${t.taxPct||0}%</p>`;
+    const right = document.createElement('div'); right.innerHTML = `<button class="btn btn-primary touch" onclick="performTask('${t.id}')">Do • ৳${parseFloat(t.reward).toFixed(2)}</button>`;
+    div.appendChild(left); div.appendChild(right); cont.appendChild(div);
+  });
+}
+function performTask(taskId){
+  const t = getTasks().find(x=>x.id===taskId); if(!t) return;
+  window.open(t.link, '_blank');
+  const pending = { id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), userId:CURRENT_USER, taskId:t.id, title:t.title, reward:parseFloat(t.reward), taxPct:parseFloat(t.taxPct||0), status:'pending', createdAt: nowStr() };
+  const arr = getWithdraws(); arr.unshift(pending); saveWithdraws(arr);
+  toast('Task submitted — admin will verify'); updateUI();
+}
+
+/* =========================
+   Ads: demo + limits
+   ========================= */
+function canPlayAd(){
+  const u = getUser(CURRENT_USER);
+  if(!canViewAd(CURRENT_USER)) return { ok:false, type:'hourly' };
+  if(u.lastAd && (Date.now() - u.lastAd) < CONFIG.cooldownMs) return { ok:false, type:'cooldown', wait: Math.ceil((CONFIG.cooldownMs - (Date.now() - u.lastAd))/1000) };
+  return { ok:true };
+}
+function playAd(){
+  const check = canPlayAd();
+  if(!check.ok){
+    if(check.type==='hourly'){ toast('আপনি এই ঘন্টায় এড লিমিট পেয়ে গেছেন (20)'); return; }
+    if(check.type==='cooldown'){ toast(`দয়া করে ${check.wait} সেকেন্ড পরে চেষ্টা করুন`); return; }
+  }
+  toast('Ad playing...');
+  setTimeout(()=>{
+    const u = getUser(CURRENT_USER);
+    u.balance = (u.balance||0) + CONFIG.adEarning;
+    u.adsWatched = (u.adsWatched||0) + 1;
+    u.totalEarned = (u.totalEarned||0) + CONFIG.adEarning;
+    u.lastAd = Date.now();
+    saveUser(CURRENT_USER, u);
+    recordAdView(CURRENT_USER);
+    vibrate(12);
+    toast(`✅ আপনি ৳${CONFIG.adEarning.toFixed(2)} পেয়েছেন — বাকি: ${adViewsLeft(CURRENT_USER)} এড/ঘণ্টা`);
+    updateUI();
+  }, 2800);
+}
+function simulateAdView(){ playAd(); }
+
+/* =========================
+   Withdraw flow
+   ========================= */
+function openWithdraw(){
+  const u = getUser(CURRENT_USER);
+  if((u.refs||0) < CONFIG.minRefsToWithdraw){ toast(`উত্তোলনের জন্য কমপক্ষে ${CONFIG.minRefsToWithdraw} রেফার প্রয়োজন`); return; }
+  const options = CONFIG.withdrawMethods.map((m,i)=> `${i+1}. ${m.label} (min ৳${m.min} • charge ৳${m.charge})`).join('\n');
+  const choice = prompt(`আপনার ব্যালেন্স: ৳${(u.balance||0).toFixed(2)}\n\nউত্তোলন পদ্ধতি:\n${options}\n\nনম্বর দিন:`);
+  if(!choice) return;
+  const idx = parseInt(choice) - 1; if(isNaN(idx) || !CONFIG.withdrawMethods[idx]){ toast('ভুল নির্বাচন'); return; }
+  const m = CONFIG.withdrawMethods[idx];
+  if((u.balance||0) < m.min){ toast(`${m.label} জন্য ন্যূনতম ৳${m.min} প্রয়োজন`); return; }
+  const gross = parseFloat(u.balance||0); const net = gross - m.charge;
+  const entry = { id:'w_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), userId:CURRENT_USER, type:'withdraw', method:m.key, methodLabel:m.label, gross:gross, charge:m.charge, net:net, status:'requested', createdAt: nowStr() };
+  addWithdraw(entry);
+  u.balance = 0; saveUser(CURRENT_USER, u);
+  toast('উত্তোলন রিকোয়েস্ট পাঠানো হয়েছে'); updateUI();
+}
+
+/* =========================
+   User history render
+   ========================= */
+function renderUserHistory(){
+  const arr = getWithdraws().filter(x=>x.userId===CURRENT_USER);
+  const container = document.getElementById('userHistory'); container.innerHTML='';
+  if(arr.length===0){ container.innerHTML = '<div class="mini">কোনো রিকোয়েস্ট নেই</div>'; return; }
+  arr.forEach(a=>{
+    const d = document.createElement('div'); d.className='task';
+    d.innerHTML = `<div class="left"><strong>${a.type==='withdraw' ? a.methodLabel : 'Task: '+a.title}</strong><p class="mini">${a.createdAt} • Status: ${a.status}</p></div><div><div class="chip">৳ ${ (a.net||a.reward||0).toFixed(2) }</div></div>`;
+    container.appendChild(d);
+  });
+}
+
+/* =========================
+   Games Implementation
+   ========================= */
+let currentGame = null;
+let quizQuestions = [
+  { question: "What is the capital of Bangladesh?", options: ["Dhaka", "Chittagong", "Khulna", "Sylhet"], answer: 0 },
+  { question: "What is 2 + 2?", options: ["3", "4", "5", "6"], answer: 1 },
+  { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Jupiter", "Venus"], answer: 1 },
+  { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: 3 },
+  { question: "Who wrote 'Hamlet'?", options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"], answer: 1 }
+];
+let currentQuizIndex = 0;
+
+function openGame(gameType) {
+  currentGame = gameType;
+  document.getElementById(gameType + 'GamePopup').classList.add('show');
+  
+  if (gameType === 'quiz') {
+    startQuiz();
+  } else if (gameType === 'math') {
+    startMathGame();
+  } else if (gameType === 'spin') {
+    resetSpinWheel();
+  } else if (gameType === 'scratch') {
+    initScratchCard();
+  }
+}
+
+function closeGame() {
+  document.querySelectorAll('.popup').forEach(popup => popup.classList.remove('show'));
+  currentGame = null;
+}
+
+// Quiz Game
+function startQuiz() {
+  currentQuizIndex = 0;
+  nextQuizQuestion();
+}
+
+function nextQuizQuestion() {
+  const question = quizQuestions[currentQuizIndex];
+  document.getElementById('quizQuestion').textContent = question.question;
+  document.getElementById('quizResult').textContent = '';
+  document.getElementById('nextQuizBtn').style.display = 'none';
+  
+  const optionsContainer = document.getElementById('quizOptions');
+  optionsContainer.innerHTML = '';
+  
+  question.options.forEach((option, index) => {
+    const optionElement = document.createElement('div');
+    optionElement.className = 'quiz-option touch';
+    optionElement.textContent = option;
+    optionElement.onclick = () => checkQuizAnswer(index);
+    optionsContainer.appendChild(optionElement);
+  });
+}
+
+function checkQuizAnswer(selectedIndex) {
+  const question = quizQuestions[currentQuizIndex];
+  const options = document.querySelectorAll('.quiz-option');
+  
+  options.forEach((option, index) => {
+    if (index === question.answer) {
+      option.classList.add('correct');
+    } else if (index === selectedIndex && index !== question.answer) {
+      option.classList.add('wrong');
+    }
+    option.onclick = null;
+  });
+  
+  if (selectedIndex === question.answer) {
+    document.getElementById('quizResult').textContent = 'Correct! You earned ৳' + CONFIG.gameReward.quiz.toFixed(2);
+    addGameReward(CONFIG.gameReward.quiz);
+  } else {
+    document.getElementById('quizResult').textContent = 'Wrong! The correct answer is: ' + question.options[question.answer];
+  }
+  
+  document.getElementById('nextQuizBtn').style.display = 'block';
+  currentQuizIndex++;
+  
+  if (currentQuizIndex >= quizQuestions.length) {
+    document.getElementById('nextQuizBtn').textContent = 'Finish Game';
+    document.getElementById('nextQuizBtn').onclick = closeGame;
+  }
+}
+
+// Math Game
+function startMathGame() {
+  nextMathProblem();
+}
+
+function nextMathProblem() {
+  const num1 = Math.floor(Math.random() * 10) + 1;
+  const num2 = Math.floor(Math.random() * 10) + 1;
+  const operators = ['+', '-', '*'];
+  const operator = operators[Math.floor(Math.random() * operators.length)];
+  
+  let correctAnswer;
+  let problemText;
+  
+  if (operator === '+') {
+    correctAnswer = num1 + num2;
+    problemText = `${num1} + ${num2}`;
+  } else if (operator === '-') {
+    correctAnswer = num1 - num2;
+    problemText = `${num1} - ${num2}`;
+  } else {
+    correctAnswer = num1 * num2;
+    problemText = `${num1} × ${num2}`;
+  }
+  
+  document.getElementById('mathProblem').textContent = problemText + ' = ?';
+  document.getElementById('mathResult').textContent = '';
+  document.getElementById('nextMathBtn').style.display = 'none';
+  
+  // Generate options
+  const options = [correctAnswer];
+  while (options.length < 4) {
+    const randomOption = correctAnswer + Math.floor(Math.random() * 10) - 5;
+    if (randomOption !== correctAnswer && !options.includes(randomOption)) {
+      options.push(randomOption);
+    }
+  }
+  
+  // Shuffle options
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  
+  const optionsContainer = document.getElementById('mathOptions');
+  optionsContainer.innerHTML = '';
+  
+  options.forEach((option, index) => {
+    const optionElement = document.createElement('div');
+    optionElement.className = 'math-option touch';
+    optionElement.textContent = option;
+    optionElement.onclick = () => checkMathAnswer(option, correctAnswer);
+    optionsContainer.appendChild(optionElement);
+  });
+}
+
+function checkMathAnswer(selectedAnswer, correctAnswer) {
+  const options = document.querySelectorAll('.math-option');
+  
+  options.forEach(option => {
+    if (parseInt(option.textContent) === correctAnswer) {
+      option.classList.add('correct');
+    } else if (parseInt(option.textContent) === selectedAnswer && selectedAnswer !== correctAnswer) {
+      option.classList.add('wrong');
+    }
+    option.onclick = null;
+  });
+  
+  if (selectedAnswer === correctAnswer) {
+    document.getElementById('mathResult').textContent = 'Correct! You earned ৳' + CONFIG.gameReward.math.toFixed(2);
+    addGameReward(CONFIG.gameReward.math);
+  } else {
+    document.getElementById('mathResult').textContent = 'Wrong! The correct answer is: ' + correctAnswer;
+  }
+  
+  document.getElementById('nextMathBtn').style.display = 'block';
+}
+
+// Spin Wheel Game
+function resetSpinWheel() {
+  document.getElementById('spinResult').textContent = '';
+  document.getElementById('spinBtn').disabled = false;
+}
+
+function spinWheel() {
+  const spinBtn = document.getElementById('spinBtn');
+  spinBtn.disabled = true;
+  
+  const spinWheel = document.getElementById('spinWheel');
+  const rotations = 5 + Math.random() * 5; // 5-10 rotations
+  const degrees = rotations * 360 + Math.floor(Math.random() * 360);
+  
+  spinWheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+  spinWheel.style.transform = `rotate(${degrees}deg)`;
+  
+  setTimeout(() => {
+    const normalizedDegrees = degrees % 360;
+    const segmentSize = 360 / CONFIG.gameReward.spin.length;
+    const segmentIndex = Math.floor(normalizedDegrees / segmentSize);
+    const reward = CONFIG.gameReward.spin[segmentIndex];
+    
+    document.getElementById('spinResult').textContent = `Congratulations! You won ৳${reward.toFixed(2)}!`;
+    addGameReward(reward);
+    
+    // Reset wheel after a delay
+    setTimeout(() => {
+      spinWheel.style.transition = 'none';
+      spinWheel.style.transform = 'rotate(0deg)';
+      setTimeout(() => {
+        spinWheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        spinBtn.disabled = false;
+      }, 50);
+    }, 2000);
+  }, 3000);
+}
+
+// Scratch Card Game
+let scratchCanvas, scratchCtx;
+let isScratching = false;
+
+function initScratchCard() {
+  scratchCanvas = document.getElementById('scratchCanvas');
+  scratchCtx = scratchCanvas.getContext('2d');
+  
+  // Fill canvas with gray
+  scratchCtx.fillStyle = '#888';
+  scratchCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+  
+  // Add scratch text
+  scratchCtx.fillStyle = '#333';
+  scratchCtx.font = '14px Arial';
+  scratchCtx.textAlign = 'center';
+  scratchCtx.fillText('Scratch here to reveal prize', scratchCanvas.width / 2, scratchCanvas.height / 2);
+  
+  // Set prize
+  const prizeIndex = Math.floor(Math.random() * CONFIG.gameReward.scratch.length);
+  const prize = CONFIG.gameReward.scratch[prizeIndex];
+  document.getElementById('scratchPrize').textContent = `৳ ${prize.toFixed(2)}`;
+  
+  document.getElementById('scratchResult').textContent = '';
+  
+  // Add event listeners for scratching
+  scratchCanvas.addEventListener('mousedown', startScratching);
+  scratchCanvas.addEventListener('mousemove', scratch);
+  scratchCanvas.addEventListener('mouseup', stopScratching);
+  scratchCanvas.addEventListener('mouseleave', stopScratching);
+  
+  scratchCanvas.addEventListener('touchstart', startScratching);
+  scratchCanvas.addEventListener('touchmove', scratch);
+  scratchCanvas.addEventListener('touchend', stopScratching);
+}
+
+function startScratching(e) {
+  isScratching = true;
+  scratch(e);
+}
+
+function scratch(e) {
+  if (!isScratching) return;
+  
+  const rect = scratchCanvas.getBoundingClientRect();
+  let x, y;
+  
+  if (e.type.includes('mouse')) {
+    x = e.clientX - rect.left;
+    y = e.clientY - rect.top;
+  } else {
+    x = e.touches[0].clientX - rect.left;
+    y = e.touches[0].clientY - rect.top;
+  }
+  
+  // Clear a circle around the cursor
+  scratchCtx.globalCompositeOperation = 'destination-out';
+  scratchCtx.beginPath();
+  scratchCtx.arc(x, y, 15, 0, Math.PI * 2);
+  scratchCtx.fill();
+  
+  // Check if enough has been scratched
+  checkScratchCompletion();
+}
+
+function stopScratching() {
+  isScratching = false;
+}
+
+function checkScratchCompletion() {
+  const imageData = scratchCtx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+  const pixels = imageData.data;
+  let transparentPixels = 0;
+  
+  for (let i = 3; i < pixels.length; i += 4) {
+    if (pixels[i] === 0) {
+      transparentPixels++;
+    }
+  }
+  
+  const transparency = transparentPixels / (pixels.length / 4);
+  
+  if (transparency > 0.5) { // 50% scratched
+    const prizeText = document.getElementById('scratchPrize').textContent;
+    const prize = parseFloat(prizeText.replace('৳', '').trim());
+    
+    document.getElementById('scratchResult').textContent = `Congratulations! You won ৳${prize.toFixed(2)}!`;
+    addGameReward(prize);
+    
+    // Remove event listeners
+    scratchCanvas.removeEventListener('mousedown', startScratching);
+    scratchCanvas.removeEventListener('mousemove', scratch);
+    scratchCanvas.removeEventListener('mouseup', stopScratching);
+    scratchCanvas.removeEventListener('mouseleave', stopScratching);
+    
+    scratchCanvas.removeEventListener('touchstart', startScratching);
+    scratchCanvas.removeEventListener('touchmove', scratch);
+    scratchCanvas.removeEventListener('touchend', stopScratching);
+  }
+}
+
+function newScratchCard() {
+  initScratchCard();
+}
+
+// Common game reward function
+function addGameReward(amount) {
+  const u = getUser(CURRENT_USER);
+  u.balance = (u.balance || 0) + amount;
+  u.totalEarned = (u.totalEarned || 0) + amount;
+  saveUser(CURRENT_USER, u);
+  updateUI();
+  toast(`Game reward: ৳${amount.toFixed(2)} added to your balance!`);
+}
+
+/* =========================
+   Admin: visibility & actions
+   ========================= */
+function isAdmin(){ return tgUser && String(tgUser.id) === ADMIN_TG_ID; }
+function initAdmin(){ if(isAdmin()){ document.querySelectorAll('.admin-only').forEach(e=>e.style.display='block'); document.getElementById('notAdminMsg')?.remove(); } else { document.querySelectorAll('.admin-only').forEach(e=>e.style.display='none'); } }
+
+/* users table render */
+function renderUsers(){
+  const tbody = document.getElementById('usersTbody'); if(!tbody) return;
+  tbody.innerHTML=''; const q = (document.getElementById('adminSearch')?.value||'').toLowerCase();
+  const idx = getIndex(); const users = idx.map(id=>getUser(id)).filter(Boolean).filter(u=>!q || u.id.toLowerCase().includes(q)).sort((a,b)=> (b.totalEarned||0)-(a.totalEarned||0));
+  users.forEach(u=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:700">${u.id}</td><td>৳ ${(u.balance||0).toFixed(2)}</td><td>${u.refs||0}</td><td>${u.adsWatched||0}</td><td><div style="display:flex;gap:6px"><button class="btn btn-ghost touch" onclick="adminEdit('${u.id}')">Edit</button><button class="btn btn-danger touch" onclick="adminDelete('${u.id}')">Del</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* admin edit/delete/create */
+function adminEdit(id){ if(!isAdmin()){ toast('Access denied'); return; } const u = getUser(id); if(!u){ toast('User not found'); return; } const nb = prompt('নতুন ব্যালেন্স (৳):', (u.balance||0)); if(nb===null) return; const num=parseFloat(nb); if(isNaN(num)){ toast('Invalid amount'); return; } u.balance=num; saveUser(id,u); toast('Balance updated'); renderUsers(); updateUI(); }
+function adminDelete(id){ if(!isAdmin()) return; if(!confirm('Confirm delete?')) return; deleteUser(id); toast('Deleted'); renderUsers(); updateUI(); }
+function openCreateUser(){ if(!isAdmin()) { toast('Access denied'); return; } const newid = prompt('User ID or leave empty for auto:') || ''; const id = newid.trim() || uid(); if(getUser(id)){ toast('User exists'); return; } const u = { id:id, balance:0, adsWatched:0, refs:0, totalEarned:0, createdAt: nowStr() }; saveUser(id,u); toast('User created'); renderUsers(); }
+
+/* admin withdraws */
+function renderAdminWithdraws(){
+  const arr = getWithdraws(); const container = document.getElementById('adminWithdraws'); if(!container) return; container.innerHTML=''; if(arr.length===0){ container.innerHTML = '<div class="mini">No requests</div>'; return; }
+  arr.forEach(item=>{
+    const div = document.createElement('div'); div.className='task';
+    const left = document.createElement('div'); left.className='left';
+    left.innerHTML = `<strong>${ item.type==='withdraw' ? item.methodLabel + ' • ৳' + (item.net||0).toFixed(2) : 'TASK • '+(item.title||'') }</strong><p class="mini">${item.createdAt} • ${item.userId} • Status: ${item.status}</p>`;
+    const right = document.createElement('div');
+    if(isAdmin() && (item.status==='pending' || item.status==='requested')) right.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px"><button class="btn btn-success touch" onclick='adminProcess("${item.id}","approve")'>Approve</button><button class="btn btn-danger touch" onclick='adminProcess("${item.id}","reject")'>Reject</button></div>`;
+    else right.innerHTML = `<div class="mini">${item.status}${item.processedAt? ' • '+item.processedAt : ''}</div>`;
+    div.appendChild(left); div.appendChild(right); container.appendChild(div);
+  });
+}
+
+/* admin process */
+function adminProcess(id, action){
+  if(!isAdmin()){ toast('Access denied'); return; }
+  const arr = getWithdraws(); const idx = arr.findIndex(x=>x.id===id); if(idx===-1){ toast('Not found'); return; }
+  const item = arr[idx];
+  if(action==='approve'){
+    arr[idx].status = 'completed'; arr[idx].processedAt = nowStr();
+    if(item.taskId || item.title){
+      const reward = parseFloat(item.reward || item.net || 0); const tax = parseFloat(item.taxPct || 0);
+      const taxAmount = (tax/100) * reward; const netToUser = reward - taxAmount;
+      const u = getUser(item.userId) || { id:item.userId, balance:0, totalEarned:0 }; u.balance = (u.balance||0) + netToUser; u.totalEarned = (u.totalEarned||0) + netToUser; saveUser(u.id,u);
+      const a = getAdminAcc(); a.taxCollected = (a.taxCollected||0) + taxAmount; saveAdminAcc(a);
+    }
+    toast('Approved');
+  } else if(action==='reject'){
+    arr[idx].status = 'rejected'; arr[idx].processedAt = nowStr();
+    if(item.type === 'withdraw'){ const u = getUser(item.userId) || { id:item.userId, balance:0 }; u.balance = (u.balance||0) + (item.gross||0); saveUser(u.id,u); toast('Rejected & refunded'); } else toast('Rejected');
+  }
+  saveWithdraws(arr); renderAdminWithdraws(); renderUsers(); updateUI();
+}
+
+/* admin account tax store */
+const KEY_ADMIN_ACC = 'sc_admin_acc_v1';
+function getAdminAcc(){ const s=localStorage.getItem(KEY_ADMIN_ACC); return s?JSON.parse(s):{taxCollected:0}; }
+function saveAdminAcc(a){ localStorage.setItem(KEY_ADMIN_ACC, JSON.stringify(a)); }
+
+/* add task admin */
+function addTask(){ if(!isAdmin()){ toast('Access denied'); return; } const title=document.getElementById('taskTitle').value.trim(); const reward=parseFloat(document.getElementById('taskReward').value) || CONFIG.socialDefaultReward; const link=document.getElementById('taskLink').value.trim() || 'https://'; const tax=parseFloat(document.getElementById('taskTax').value) || 0; const type=document.getElementById('taskType').value || 'visit'; if(!title){ toast('Title missing'); return; } const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); const tasks=getTasks(); tasks.unshift({id:id,title:title,link:link,reward:reward,taxPct:tax,type:type}); saveTasks(tasks); document.getElementById('taskTitle').value='';document.getElementById('taskReward').value='';document.getElementById('taskLink').value='';document.getElementById('taskTax').value=''; renderTasks(); toast('Task added'); }
+
+/* export & clear */
+function exportData(){ if(!isAdmin()){ toast('Access denied'); return; } const data={ users:getIndex().map(id=>getUser(id)), withdraws:getWithdraws(), tasks:getTasks(), admin:getAdminAcc(), adViews: JSON.parse(localStorage.getItem(KEY_AD_VIEWS)||'{}') }; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='sc_export_'+Date.now()+'.json'; a.click(); URL.revokeObjectURL(url); }
+function clearAllConfirm(){ if(!isAdmin()) return; if(!confirm('Clear ALL local data?')) return; getIndex().forEach(id=>localStorage.removeItem(id)); localStorage.removeItem(KEY_USERS); localStorage.removeItem(KEY_WITHDRAWS); localStorage.removeItem(KEY_TASKS); localStorage.removeItem(KEY_ADMIN_ACC); localStorage.removeItem(KEY_GUEST); localStorage.removeItem(KEY_AD_VIEWS); toast('All cleared'); updateUI(); }
+
+/* admin helpers */
+function adminLogout(){ toast('Admin logout'); document.querySelectorAll('.admin-only').forEach(e=>e.style.display='none'); }
+
+/* =========================
+   Utilities visible in console
+   ========================= */
+window._SC = { getIndex, getUser, getWithdraws, getTasks, saveUser, loadDefaultTasks };
+
+/* =========================
+   Init bootstrap
+   ========================= */
+(function bootstrap(){
+  ensureCurrentUser();
+  if(!getTasks() || getTasks().length===0) loadDefaultTasks();
+  const idx=getIndex(); if(!idx.includes(CURRENT_USER)) { idx.push(CURRENT_USER); saveIndex(idx); }
+  initAdmin(); updateUI();
+  // show welcome once
+  const welcomeKey = 'sc_welcome_v1_'+CURRENT_USER;
+  if(!localStorage.getItem(welcomeKey)){ document.getElementById('welcomePopup').classList.add('show'); localStorage.setItem(welcomeKey,'1'); }
+  // rotate ad mode demo
+  setInterval(()=>{ const chip=document.getElementById('adModeChip'); chip.innerText = 'Mode: ' + (Math.random()>0.5 ? 'Adsterra' : 'Monetag'); }, CONFIG.adRotationInterval);
+})();
+
+/* =========================
+   Small helpers and DOM functions
+   ========================= */
+function getIndex(){ try{ const s=localStorage.getItem(KEY_USERS); return s?JSON.parse(s):[];}catch(e){return []} }
+function copyRef(){ const el=document.getElementById('refLink'); el.select(); el.setSelectionRange(0,99999); document.execCommand('copy'); toast('Referral copied'); }
+function openSupport(){ window.open('https://t.me/sweetcashapp_bot','_blank'); }
+function refreshAll(){ updateUI(); renderAdminWithdraws(); renderUsers(); }
+function closeWelcome(){ document.getElementById('welcomePopup').classList.remove('show'); }
+
+/* =========================
+   Bottom nav view switch
+   ========================= */
+function switchView(view, btn){
+  document.querySelectorAll('[id^="view"]').forEach(v=>v.style.display='none');
+  document.getElementById('view'+capitalize(view)).style.display='block';
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+/* =========================
+   Ad views store functions (helpers)
+   ========================= */
+function _getAdStore(){ try{ const s=localStorage.getItem(KEY_AD_VIEWS); return s?JSON.parse(s):{} }catch(e){return {}} }
+function _saveAdStore(o){ localStorage.setItem(KEY_AD_VIEWS, JSON.stringify(o)); }
+function canViewAd(uid){ const st=_getAdStore(); const arr=st[uid]||[]; const oneHour=Date.now()-3600*1000; const recent=arr.filter(t=>t>oneHour); return recent.length < CONFIG.adHourlyLimit; }
+function recordAdView(uid){ const st=_getAdStore(); const arr=st[uid]||[]; arr.push(Date.now()); st[uid]=arr.slice(-200); _saveAdStore(st); }
+function adViewsLeft(uid){ const st=_getAdStore(); const arr=st[uid]||[]; const oneHour=Date.now()-3600*1000; const recent=arr.filter(t=>t>oneHour); return Math.max(0, CONFIG.adHourlyLimit - recent.length); }
+
+/* make functions accessible */
+window.playAd = playAd; window.performTask = performTask; window.addTask = addTask; window.loadDefaultTasks = loadDefaultTasks;
+window.exportData = exportData; window.clearAllConfirm = clearAllConfirm; window.openCreateUser = openCreateUser; window.adminEdit = adminEdit; window.adminDelete = adminDelete; window.adminProcess = adminProcess; window.refreshAll = refreshAll; window.openSupport = openSupport; window.copyRef = copyRef;
+window.openGame = openGame; window.closeGame = closeGame; window.nextQuizQuestion = nextQuizQuestion; window.nextMathProblem = nextMathProblem; window.spinWheel = spinWheel; window.newScratchCard = newScratchCard;
+
+/* =========================
+   END
+   ========================= */
+</script>
+</body>
+  </html>
